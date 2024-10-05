@@ -1,0 +1,56 @@
+version: '3.8'
+services:
+    # PHP
+    php:
+        build:
+            context: .
+        image: laravel-news-php
+        container_name: laravel-news-php
+        volumes:
+            - ./:/var/www
+        working_dir: /var/www
+        environment:
+            SERVICE_NAME: laravel-news-app
+            SERVICE_TAGS: dev
+        networks:
+            - laravel-news
+    # DB Service
+    db:
+        image: mysql:8.0.33
+        container_name: laravel-news-db
+        restart: unless-stopped
+        tty: true
+        ports:
+            - '3308:3306'
+        environment:
+            SERVICE_NAME: mysql
+            MYSQL_DATABASE: ${DB_DATABASE}
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+            MYSQL_PASSWORD: ${DB_PASSWORD}
+            MYSQL_USER: ${DB_USERNAME}
+        volumes:
+            - dbdata:/var/lib/mysql/
+
+        networks:
+            - laravel-news
+    # NGINX
+    nginx:
+        image: nginx:alpine
+        container_name: laravel-news-nginx
+        restart: unless-stopped
+        tty: true
+        ports:
+            - '8082:80'
+            - '443:443'
+        volumes:
+            - ./:/var/www
+            - ./nginx:/etc/nginx/conf.d/
+        networks:
+            - laravel-news
+networks:
+    laravel-news:
+        driver: bridge
+volumes:
+    dbdata:
+        driver: local
+
